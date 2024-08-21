@@ -1,0 +1,210 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Cascadia Code', sans-serif !important;
+}
+
+body {
+    background-color: #1a1a2e;
+    color: #f1f1f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 20px;
+    margin: 0;
+}
+
+#search {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border: 2px solid #444;
+    border-radius: 8px;
+    outline: none;
+    background-color: #2e2e42;
+    color: #f1f1f1;
+    margin-bottom: 10px;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+#search:focus {
+    border-color: #5a67d8;
+}
+
+#dropdownContainer {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+#versionDropdown {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #444;
+    border-radius: 8px;
+    background-color: #2e2e42;
+    color: #f1f1f1;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+#versionDropdown:focus {
+    border-color: #5a67d8;
+}
+
+#searchResults {
+    top: 100%; /* Positioned directly below the dropdown container */
+    left: 0;
+    width: 100%;
+    background-color: #2e2e42;
+    border: 1px solid #444;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    max-height: 700px;
+    overflow-y: auto; /* Ensure vertical scroll if needed */
+    z-index: 2;
+}
+
+#searchResults li {
+    list-style-type: none;
+    border-bottom: 1px solid #444;
+    padding: 10px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    white-space: normal; /* Allow text to wrap */
+    word-wrap: break-word; /* Break long words to prevent overflow */
+    overflow-wrap: break-word; /* Modern equivalent of word-wrap */
+}
+
+#searchResults li:last-child {
+    border-bottom: none;
+}
+
+#searchResults li a {
+    text-decoration: none;
+    color: #fff;
+    display: block;
+}
+
+#searchResults li:hover {
+    background-color: #3d3d5c;
+}
+
+#searchResults li a:hover {
+    color: #a3a3ff;
+}
+
+#searchResults::-webkit-scrollbar {
+    width: 10px;
+}
+
+#searchResults::-webkit-scrollbar-thumb {
+    background-color: #5a67d8;
+    border-radius: 5px;
+}
+
+#searchResults::-webkit-scrollbar-track {
+    background-color: #333;
+}
+
+#searchResults li:last-child {
+    border-bottom: none;
+}
+
+#searchResults li a {
+    text-decoration: none;
+    color: #fff;
+    display: block;
+}
+
+#searchResults li:hover {
+    background-color: #3d3d5c;
+}
+
+#searchResults li a:hover {
+    color: #a3a3ff;
+}
+
+#searchResults::-webkit-scrollbar {
+    width: 10px;
+}
+
+#searchResults::-webkit-scrollbar-thumb {
+    background-color: #5a67d8;
+    border-radius: 5px;
+}
+
+#searchResults::-webkit-scrollbar-track {
+    background-color: #333;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 600px) {
+    #search {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    #versionDropdown {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    #searchResults li {
+        font-size: 14px;
+        padding: 8px;
+    }
+}
+
+.sidebar div {
+    padding: 8px;
+    font-size: 24px;
+    display: block;
+}
+.body-text {
+    margin-left: 150px;
+    font-size: 18px;
+}
+
+#container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    max-width: none;
+}
+
+#sidebar-container {
+    height: 100%;
+    width: 25%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding-top: 2%;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-right: 1px solid #444;
+    box-sizing: border-box;
+}
+
+pre {
+    margin-left: 24.6%; /* To align with the sidebar's width */
+    width: 75%;
+    padding: 20px;
+    color: #f1f1f1;
+    height: 100%;
+    box-sizing: border-box;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+pre::-webkit-scrollbar {
+    display: none;
+}
+
+code {
+    display: block;
+    white-space: pre-wrap; /* Allow wrapping of long lines */
+    word-wrap: break-word; /* Break long words to prevent overflow */
+}
