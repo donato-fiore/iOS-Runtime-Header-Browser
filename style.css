@@ -55,7 +55,8 @@ body {
 }
 
 #searchResults {
-    top: 100%; /* Positioned directly below the dropdown container */
+    top: 100%;
+    /* Positioned directly below the dropdown container */
     left: 0;
     width: 100%;
     background-color: #2e2e42;
@@ -63,7 +64,8 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     max-height: 700px;
-    overflow-y: auto; /* Ensure vertical scroll if needed */
+    overflow-y: auto;
+    /* Ensure vertical scroll if needed */
     z-index: 2;
 }
 
@@ -73,9 +75,12 @@ body {
     padding: 10px;
     font-size: 16px;
     transition: background-color 0.3s ease;
-    white-space: normal; /* Allow text to wrap */
-    word-wrap: break-word; /* Break long words to prevent overflow */
-    overflow-wrap: break-word; /* Modern equivalent of word-wrap */
+    white-space: normal;
+    /* Allow text to wrap */
+    word-wrap: break-word;
+    /* Break long words to prevent overflow */
+    overflow-wrap: break-word;
+    /* Modern equivalent of word-wrap */
 }
 
 #searchResults li:last-child {
@@ -101,7 +106,7 @@ body {
 }
 
 #searchResults::-webkit-scrollbar-thumb {
-    background-color: #5a67d8;
+    background-color: #3e4794;
     border-radius: 5px;
 }
 
@@ -132,7 +137,7 @@ body {
 }
 
 #searchResults::-webkit-scrollbar-thumb {
-    background-color: #5a67d8;
+    background-color: #3e4794;
     border-radius: 5px;
 }
 
@@ -163,6 +168,7 @@ body {
     font-size: 24px;
     display: block;
 }
+
 .body-text {
     margin-left: 150px;
     font-size: 18px;
@@ -189,7 +195,8 @@ body {
 }
 
 pre {
-    margin-left: 24.6%; /* To align with the sidebar's width */
+    margin-left: 24.6%;
+    /* To align with the sidebar's width */
     width: 75%;
     padding: 20px;
     color: #f1f1f1;
@@ -205,6 +212,138 @@ pre::-webkit-scrollbar {
 
 code {
     display: block;
-    white-space: pre-wrap; /* Allow wrapping of long lines */
-    word-wrap: break-word; /* Break long words to prevent overflow */
+    white-space: pre-wrap;
+    /* Allow wrapping of long lines */
+    word-wrap: break-word;
+    /* Break long words to prevent overflow */
+}
+
+.segmented-control {
+    display: inline-flex;
+    border: 2px solid #3e4794;
+    border-radius: 25px;
+    overflow: hidden;
+    position: relative;
+    font-family: Arial, sans-serif;
+    width: 200px;
+    height: 50px;
+}
+
+input[type="radio"] {
+    display: none;
+}
+
+label {
+    flex: 1;
+    margin: 0;
+    cursor: pointer;
+    z-index: 1;
+    transition: color 0.3s;
+    color: #3e4794;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 16px;
+}
+
+.background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background-color: #3e4794;
+    border-radius: 25px;
+    transition: left 0.3s;
+    z-index: 0;
+}
+
+input#framework:checked+label[for="framework"]~.background {
+    left: 0;
+}
+
+input#header:checked+label[for="header"]~.background {
+    left: 50%;
+}
+
+input#framework:checked+label[for="framework"],
+input#header:checked+label[for="header"] {
+    color: #fff;
+}
+
+#frameworkResults {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    max-height: 750px;
+    overflow-y: auto;
+    background-color: #2e2e42;
+    border-radius: 8px;
+    border: 1px solid #444;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+#frameworkResults li {
+    border-bottom: 1px solid #444;
+    padding: 15px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+#frameworkResults li:last-child {
+    border-bottom: none;
+}
+
+#frameworkResults li a {
+    text-decoration: none;
+    color: #fff;
+    display: block;
+    transition: color 0.3s ease;
+}
+
+#frameworkResults li:hover {
+    background-color: #3d3d5c;
+}
+
+#frameworkResults li a:hover {
+    color: #a3a3ff;
+}
+
+/* Scrollbar styling */
+#frameworkResults::-webkit-scrollbar {
+    width: 10px;
+}
+
+#frameworkResults::-webkit-scrollbar-thumb {
+    background-color: #3e4794;
+    border-radius: 5px;
+}
+
+#frameworkResults::-webkit-scrollbar-track {
+    background-color: #333;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 600px) {
+    #frameworkResults li {
+        font-size: 14px;
+        padding: 12px;
+    }
+}
+
+.download-button {
+    background-color: #3e4794;
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.download-button:hover {
+    background-color: #2b3164;
 }

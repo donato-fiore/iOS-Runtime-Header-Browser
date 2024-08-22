@@ -16,15 +16,27 @@
 <body>
     <div id="container">
         <div id="sidebar-container">
-            <div>
-                <input type="text" id="search" placeholder="Search">
+            <div style="text-align: center;">
+                <div class="segmented-control">
+                    <input type="radio" id="framework" name="segment">
+                    <label for="framework">Framework</label>
 
+                    <input type="radio" id="header" name="segment" checked>
+                    <label for="header">Header</label>
+
+                    <div class="background"></div>
+                </div>
+            </div>
+            <div style="padding-top: 15px">
+                <input type="text" id="search" placeholder="Header Search" autocomplete="off">
                 <div id="dropdownContainer">
                     <select id="versionDropdown">
                         <option value="" disabled selected>iOS Version</option>
-                        <option value="17" disabled>iOS 17.0 (Coming Soon)</option>
-                        <option value="16">iOS 16.0</option>
-                        <option value="15">iOS 15.0</option>
+                        <option value="17.0" disabled>iOS 17.0 (Coming Soon)</option>
+                        <option value="16.5">iOS 16.5</option>
+                        <option value="16.0">iOS 16.0</option>
+                        <option value="15.6">iOS 15.6</option>
+                        <option value="15.0">iOS 15.0</option>
                     </select>
                 </div>
 
@@ -32,11 +44,15 @@
             </div>
         </div>
         <pre>
+            <div id="framework-list-container" style="display: none;">
+                <div id="frameworkResults"></div>
+                <div id="download-cell"></div>
+            </div>
             <code id="header-container" class="language-objectivec">
 /*
  *    iOS Runtime Header Browser
  *    Generated using ktool v2.0.0
- *    Current versions: iOS 15.0 & iOS 16.0
+ *    Current versions: iOS 15.0, iOS 15.6, iOS 16.0 & iOS 16.5
  *
  *    ktool: https://github.com/0cyn/ktool
  */
@@ -44,8 +60,15 @@
         </pre>
     </div>
     <script>hljs.highlightAll();</script>
-    <script type="text/javascript" src="iOS15_index.min.js"></script>
-    <script type="text/javascript" src="iOS16_index.min.js"></script>
+    <script type="text/javascript" src="iOS16.5_header_index.min.js"></script>
+    <script type="text/javascript" src="iOS16.0_header_index.min.js"></script>
+    <script type="text/javascript" src="iOS15.6_header_index.min.js"></script>
+    <script type="text/javascript" src="iOS15.0_header_index.min.js"></script>
+
+    <script type="text/javascript" src="iOS16.5_framework_index.min.js"></script>
+    <script type="text/javascript" src="iOS16.0_framework_index.min.js"></script>
+    <script type="text/javascript" src="iOS15.6_framework_index.min.js"></script>
+    <script type="text/javascript" src="iOS15.0_framework_index.min.js"></script>
     <script src="index.js"></script>
 </body>
 
