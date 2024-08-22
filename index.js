@@ -1,12 +1,12 @@
-const header_fuseoptions = {
-    minMatchCharLength: 5,
+const HEADER_FUSEOPTIONS = {
+    minMatchCharLength: 4,
     threshold: 0.0,
     distance: 0,
     keys: ['Header']
 };
 
-const framework_fuseoptions = {
-    minMatchCharLength: 3,
+const FRAMEWORK_FUSEOPTIONS = {
+    minMatchCharLength: 1,
     threshold: 0.0,
     distance: 0,
     keys: ['filename']
@@ -14,42 +14,46 @@ const framework_fuseoptions = {
 
 const URL_PREFIX = 'https://raw.githubusercontent.com/donato-fiore/iOS-Runtime-Headers/main';
 
+const searchResultsList = document.getElementById('search-results-list');
+let currentVersion = -1;
+let searchMode = 'header';
+let currentFramework = null;
+
 const fuseIndex = {
-    16.5: {
-        'Headers': new Fuse(iOS16_5_header_index, header_fuseoptions),
-        'Frameworks': new Fuse(iOS16_5_framework_index, framework_fuseoptions)
-    },
-    16: {
-        'Headers': new Fuse(iOS16_0_header_index, header_fuseoptions),
-        'Frameworks': new Fuse(iOS16_0_framework_index, framework_fuseoptions)
-    },
-    15.6: {
-        'Headers': new Fuse(iOS15_6_header_index, header_fuseoptions),
-        'Frameworks': new Fuse(iOS15_6_framework_index, framework_fuseoptions)
-    },
-    15: {
-        'Headers': new Fuse(iOS15_0_header_index, header_fuseoptions),
-        'Frameworks': new Fuse(iOS15_0_framework_index, framework_fuseoptions)
-    },
+    16.5: {},
+    16: {},
+    15.6: {},
+    15: {}
 }
 
-// Pragma mark: - Variables
+// Pragma mark: - Functions
+function setViewTitle(title) {
+    document.getElementById('title').textContent = title;
+}
 
-const searchResultsList = document.getElementById('searchResults');
-var version = -1;
-var fuse;
-var currentURL = "";
-var searchMode = "header";
+function clearSearchResults() {
+    document.getElementById('search-results-list').innerHTML = '';
+}
 
-// Pragma mark: - Utils
+function clearFrameworkHeaderResults() {
+    document.getElementById('framework-results-list').innerHTML = '';
+}
 
-function getHeadersForFramework(framework) {
+function headersForFramework(framework, query) {
     const headers = [];
-    const _fuse = fuseIndex[version]['Headers'];
+    const _fuse = fuseIndex[currentVersion]['Headers'];
 
-    for (const header of _fuse.getIndex().docs) {
-        if (header.Path.includes(`${framework}.framework`)) {
-            headers.push(header);
+    if (query.length == 0) {
+        for (const header of _fuse.getIndex().docs) {
+            if (header.Path.includes(`${framework}.framework`)) {
+                headers.push(header);
+            }
+        }
+    } else {
+        for (const header of _fuse.getIndex().docs) {
+            if (header.Path.includes(`${framework}.framework`) && header.Path.toLowerCase().includes(query.toLowerCase())) {
+                headers.push(header);
+            }
         }
     }
 
@@ -58,202 +62,294 @@ function getHeadersForFramework(framework) {
     return headers;
 }
 
-function clearResults() {
-    document.getElementById('searchResults').innerHTML = '';
-}
+// function safe_frameworkHeaderSearch(query) {
+// }
 
-function clearHeader() {
-    document.getElementById('frameworkResults').innerHTML = '';
-}
+function lazyLoadIndexFromVersion() {
+    const num = currentVersion.toString();
+    const versionStr = Number(num).toFixed(Math.max(num.split('.')[1]?.length, 1) || 1);
 
-function performSearch(query) {
-    const searchResults = fuse.search(query);
+    console.info('Lazy loading index for version', versionStr);
 
-    console.log(searchResults);
+    const headerIndex = document.createElement('script');
+    headerIndex.src = `iOS${versionStr}_header_index.min.js`;
+    document.head.appendChild(headerIndex);
 
-    clearResults();
-    if (searchMode == 'header') {
-        searchResults.forEach(result => {
-            const li = document.createElement('li');
-            var element = document.createElement('a');
+    headerIndex.onload = () => {
+        let index;
+        if (currentVersion == 15) {
+            index = iOS15_0_header_index;
+        } else if (currentVersion == 15.6) {
+            index = iOS15_6_header_index;
+        } else if (currentVersion == 16) {
+            index = iOS16_0_header_index;
+        } else if (currentVersion == 16.5) {
+            index = iOS16_5_header_index;
+        }
 
-            element.href = `${URL_PREFIX}/${result.item.Path}`;
-            element.target = '_blank';
-            element.textContent = `${result.item.Header}`;
+        fuseIndex[currentVersion]['Headers'] = new Fuse(index, HEADER_FUSEOPTIONS);
+    }
 
-            element.addEventListener("click", loadHeaderFromURL);
+    const frameworkIndex = document.createElement('script');
+    frameworkIndex.src = `iOS${versionStr}_framework_index.min.js`;
+    document.head.appendChild(frameworkIndex);
 
-            li.appendChild(element);
-            searchResultsList.appendChild(li);
-        });
-    } else {
-        searchResults.forEach(result => {
-            const li = document.createElement('li');
-            var element = document.createElement('a');
+    frameworkIndex.onload = () => {
+        let index;
+        if (currentVersion == 15) {
+            index = iOS15_0_framework_index;
+        } else if (currentVersion == 15.6) {
+            index = iOS15_6_framework_index;
+        } else if (currentVersion == 16) {
+            index = iOS16_0_framework_index;
+        } else if (currentVersion == 16.5) {
+            index = iOS16_5_framework_index;
+        }
 
-            element.href = `${URL_PREFIX}/${result.item.Path}/${result.item.filename}`;
-            element.target = '_blank';
-            element.textContent = `${result.item.filename}`;
-
-            element.addEventListener("click", loadFrameworkFrom);
-
-            li.appendChild(element);
-            searchResultsList.appendChild(li);
-        });
+        fuseIndex[currentVersion]['Frameworks'] = new Fuse(index, FRAMEWORK_FUSEOPTIONS);
     }
 }
 
-function loadFrameworkFrom(e) {
-    try {
-        e.preventDefault();
-    } catch (error) { /* */ }
+function headerSearch(query) {
+    const results = fuseIndex[currentVersion]['Headers'].search(query);
 
-    var headerContainer = document.getElementById('header-container');
+    clearSearchResults();
+    results.forEach((result) => {
+        const li = document.createElement('li');
+        const element = document.createElement('a');
+
+        element.href = `${URL_PREFIX}/${result.item.Path}`;
+        element.target = '_blank';
+        element.textContent = `${result.item.Header}`;
+
+        element.addEventListener('click', loadHeaderFromEvent);
+
+        li.appendChild(element);
+        searchResultsList.appendChild(li);
+    });
+}
+
+function frameworkSearch(query) {
+    clearSearchResults();
+
+    let results = [];
+    if (query.length == 0) {
+        for (const header of fuseIndex[currentVersion]['Frameworks'].getIndex().docs) {
+            results.push({ item: header });
+        }
+    } else {
+        results = fuseIndex[currentVersion]['Frameworks'].search(query);
+    }
+
+    results.forEach((result) => {
+        const li = document.createElement('li');
+        const element = document.createElement('a');
+
+        element.href = `${URL_PREFIX}/${result.item.Path}/${result.item.filename}`;
+        element.target = '_blank';
+        element.textContent = `${result.item.filename}`;
+
+        element.addEventListener('click', loadFrameworkFromEvent);
+
+        li.appendChild(element);
+        searchResultsList.appendChild(li);
+    });
+}
+
+function safe_headerSearch(query) {
+    if (typeof fuseIndex[currentVersion]['Headers'] != 'undefined') {
+        headerSearch(query);
+    } else {
+        setTimeout(() => {
+            headerSearch(query);
+        }, 250);
+    }
+}
+
+function safe_frameworkSearch(query) {
+    if (typeof fuseIndex[currentVersion]['Frameworks'] != 'undefined') {
+        frameworkSearch(query);
+    } else {
+        setTimeout(() => {
+            frameworkSearch(query);
+        }, 250);
+    }
+}
+
+function loadHeaderFromEvent(event) {
+    try {
+        event.preventDefault();
+    } catch (error) { /* pass */ }
+
+    const url = event.target.href;
+    console.log('Loading header from', url);
+    fetch(url).then((resp) => {
+        if (!resp.ok) throw new Error(`HTTP error: ${resp.status}`);
+        return resp.text();
+    }).then(text => {
+        const headerContainer = document.getElementById('header-container');
+        headerContainer.style.display = 'block';
+
+        const frameworkListContainer = document.getElementById('framework-list-container');
+        frameworkListContainer.style.display = 'none';
+
+        headerContainer.removeAttribute('data-highlighted');
+        headerContainer.classList.remove('hljs');
+
+        headerContainer.innerHTML = text;
+        hljs.highlightAll();
+
+        const framework_path = url.replace(`${URL_PREFIX}/`, '').split('/Headers/')[0];
+        const framework_name = framework_path.split('.framework')[0].split('/').reverse()[0];
+
+        // download button
+        const downloadCell = document.getElementById('download-container');
+        const downloadButton = document.createElement('button');
+        downloadButton.className = 'download-button';
+        downloadButton.style.width = '100%';
+
+        downloadButton.innerHTML = `${framework_name}.framework/${framework_name}`;
+        downloadButton.addEventListener('click', function () {
+            window.open(`${URL_PREFIX}/${framework_path}/${framework_name}`);
+        });
+
+        downloadCell.innerHTML = '';
+        downloadCell.appendChild(downloadButton);
+
+        setViewTitle(`${url.split('/').reverse()[0]}`);
+    }).catch((error) => {
+        console.error('Error loading header', error);
+    })
+}
+
+function loadFrameworkFromEvent(event) {
+    try {
+        event.preventDefault();
+    } catch (error) { /* pass */ }
+
+    const frameworkResultsList = document.getElementById('framework-results-list');
+
+    const headerContainer = document.getElementById('header-container');
     headerContainer.style.display = 'none';
 
-    var listContainer = document.getElementById('framework-list-container');
-    listContainer.style.display = 'block';
+    const frameworkListContainer = document.getElementById('framework-list-container');
+    frameworkListContainer.style.display = 'block';
 
-    var framework = e.target.href.split('/').reverse()[0];
-    console.log('Fetching Framework:', framework);
+    const framework = event.target.href.split('/').reverse()[0];
+    console.log('Loading framework', framework);
 
-    var headers = getHeadersForFramework(framework);
-    console.log('Headers:', headers);
-
-    var frameworkResultsList = document.getElementById('frameworkResults');
-    clearHeader();
-
-    headers.forEach(header => {
+    clearFrameworkHeaderResults();
+    headersForFramework(framework, '').forEach((header) => {
         const li = document.createElement('li');
-        var element = document.createElement('a');
+        const element = document.createElement('a');
 
         element.href = `${URL_PREFIX}/${header.Path}`;
         element.target = '_blank';
         element.textContent = `${header.Header}`;
 
-        element.addEventListener("click", loadHeaderFromURL);
+        element.addEventListener('click', loadHeaderFromEvent);
 
         li.appendChild(element);
         frameworkResultsList.appendChild(li);
     });
 
     // download button
-    var downloadCell = document.getElementById('download-cell');
-
-    var downloadButton = document.createElement('button');
+    const downloadCell = document.getElementById('download-container');
+    const downloadButton = document.createElement('button');
     downloadButton.className = 'download-button';
     downloadButton.style.width = '100%';
 
     downloadButton.innerHTML = `${framework}.framework/${framework}`;
     downloadButton.addEventListener('click', function () {
-        // download from ${e.target.href}
-        window.open(e.target.href);
+        window.open(event.target.href);
     });
 
     downloadCell.innerHTML = '';
     downloadCell.appendChild(downloadButton);
+
+    currentFramework = framework;
+    const prettyName = framework.includes('.dylib') ? framework : `${framework}.framework`;
+
+    document.getElementById('framework-search').placeholder = `${prettyName} Search`;
+    setViewTitle(`${prettyName}`);
 }
 
-function loadHeaderFromURL(e) {
-    try {
-        e.preventDefault();
-    } catch (error) { /* */ }
-
-    const url = e.target.href;
-    console.log('Fetching URL:', url);
-    fetch(url).then(r => {
-        if (!r.ok)
-            throw new Error(`HTTP error! status: ${r.status}`);
-
-        return r.text();
-    }).then(t => {
-        var headerContainer = document.getElementById('header-container');
-        headerContainer.style.display = 'block';
-
-        var listContainer = document.getElementById('framework-list-container');
-        listContainer.style.display = 'none';
-
-        headerContainer.removeAttribute('data-highlighted');
-        headerContainer.classList.remove('hljs');
-
-        headerContainer.innerHTML = t;
-        hljs.highlightAll();
-
-        currentURL = url;
-    }).catch(error => {
-        console.error('Fetch error:', error);
-    });
-}
-
-
-// Pragma mark: - Event Listeners
-
-document.getElementById('versionDropdown').addEventListener('change', function (e) {
+// Pragma mark: - Event listeners
+document.getElementById('version-dropdown').addEventListener('change', function (e) {
     const versionStr = e.target.value;
-    version = parseFloat(versionStr);
+    currentVersion = parseFloat(versionStr);
 
-    console.log('Selected version:', version);
-
-    if (searchMode == "header") {
-        fuse = fuseIndex[version]['Headers'];
+    // lazy load indexes
+    if (
+        currentVersion == 15 && !fuseIndex[15].Frameworks ||
+        currentVersion == 15.6 && !fuseIndex[15.6].Frameworks ||
+        currentVersion == 16 && !fuseIndex[16].Frameworks ||
+        currentVersion == 16.5 && !fuseIndex[16.5].Frameworks
+    ) {
+        lazyLoadIndexFromVersion();
     } else {
-        fuse = fuseIndex[version]['Frameworks'];
+        console.log('Index already loaded for version', currentVersion);
     }
 
-    var fuseoptions = header_fuseoptions;
-    if (searchMode == "framework") {
-        fuseoptions = framework_fuseoptions;
-    }
+    clearSearchResults();
+    const searchBar = document.getElementById('search');
+    if (searchMode == 'framework') safe_frameworkSearch(searchBar.value.length > 0 ? searchBar.value : '');
 
-    const searchPattern = document.getElementById('search').value;
-
-    if (searchPattern.length < fuseoptions.minMatchCharLength) {
-        clearResults();
-        return;
-    }
-
-    performSearch(searchPattern);
-
-    if (currentURL != "") {
-        loadHeaderFromURL({ target: { href: currentURL } });
-    }
+    if (searchMode == 'header') safe_headerSearch(searchBar.value);
 });
-
-document.getElementById('search').addEventListener('input', function (e) {
-    if (version == -1) return;
-
-    const searchPattern = e.target.value;
-
-    var fuseoptions = header_fuseoptions;
-    if (searchMode == "framework") {
-        fuseoptions = framework_fuseoptions;
-    }
-
-    if (searchPattern.length < fuseoptions.minMatchCharLength) {
-        clearResults();
-        return;
-    }
-
-    performSearch(searchPattern);
-});
-
 
 document.querySelectorAll('input[name="segment"]').forEach((input) => {
     input.addEventListener('change', function () {
-        clearResults();
+        clearSearchResults();
+
+        const searchBar = document.getElementById('search');
+
         searchMode = document.querySelector('input[name="segment"]:checked').id;
-        console.log('Search Mode:', searchMode);
-        var search = "Header";
-        if (searchMode == "framework") {
-            search = "Framework";
-        }
+        const searchPlaceholderStr = searchMode == 'header' ? 'Header Search' : 'Framework Search';
+        searchBar.placeholder = searchPlaceholderStr;
 
-        if (searchMode == "header") {
-            fuse = fuseIndex[version]['Headers'];
-        } else {
-            fuse = fuseIndex[version]['Frameworks'];
-        }
+        clearSearchResults();
+        if (searchMode == 'framework') safe_frameworkSearch(searchBar.value.length > 0 ? searchBar.value : '');
 
-        document.getElementById('search').placeholder = `${search} Search`;
+        if (searchMode == 'header') safe_headerSearch(searchBar.value);
+    });
+});
+
+document.getElementById('search').addEventListener('input', function (e) {
+    if (currentVersion == -1) return;
+
+    const query = e.target.value;
+    console.info('Searching for', query);
+    if (searchMode == 'header') {
+        safe_headerSearch(query);
+    } else {
+        safe_frameworkSearch(query);
+    }
+});
+
+document.getElementById('framework-search').addEventListener('input', function () {
+    searchMode = 'framework';
+
+    const searchBar = document.getElementById('framework-search');
+    const resultList = document.getElementById('framework-results-list');
+
+    searchBar.placeholder = 'Search for a header';
+    console.log('Filtering search results for frameworks');
+
+    clearFrameworkHeaderResults();
+    const headers = headersForFramework(currentFramework, searchBar.value);
+    console.log(headers);
+    headers.forEach((header) => {
+        const li = document.createElement('li');
+        const element = document.createElement('a');
+
+        element.href = `${URL_PREFIX}/${header.Path}`;
+        element.target = '_blank';
+        element.textContent = `${header.Header}`;
+
+        element.addEventListener('click', loadHeaderFromEvent);
+
+        li.appendChild(element);
+        resultList.appendChild(li);
     });
 });
